@@ -1,0 +1,205 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template to deploy Access Advisor Automation to assist with least privileged implementation
+
+Parameters:
+
+  Environment:
+    Description:    Please specify the target environment.
+    Type:           String
+    Default:        "prod"
+    AllowedValues:
+      - prod
+      - staging
+      - dev
+
+  AppName:
+    Description:  Application environment name.
+    Type:         String
+    Default:      "AccessAdvisorAutomation"
+
+  S3Bucket:
+    Description:  S3 bucket name with installation file
+    Type:         String
+    Default:      "ddmitriy-aapb"
+
+  S3Key:
+    Description:  "S3Key, name of the function zip file with the script. File name must match - Lambda: Handler: accessadvisor_automation.lambda_handler"
+    Type:         String
+    Default:      "accessadvisor_automation.zip"
+
+  S3LambdaLayerKey:
+    Description:  S3Key, name of the zip file with the script
+    Type:         String
+    Default:      "boto3layer.zip"
+
+  DoNotListBucket:
+    Description:  S3 bucket with do not list (exception list), same bucket used for base permissions boundary actions list
+    Type:         String
+    Default:      "ddmitriy-aapb"
+
+  DoNotListKey:
+    Description:  S3 key, do not list file name, just a list
+    Type:         String
+    Default:      "do_not_list.txt"
+
+  DaysExpire:
+    Description:  Days for permissions to expire if not accessed, if services not accessed in more the X days, it will not be included in permissions boundary. This will remove access to the services.
+    Type:         Number
+    Default:      180
+    ConstraintDescription: 'Must be in the range [1-365]'
+    MinValue:     1
+    MaxValue:     255
+
+  Enforce:
+    Description:  Set to 'yes' to enforce permissions boundary, or 'no' to only audit, tag roles and users
+    Type:         String
+    Default:      'yes'
+
+  BaseActions:
+    Description:  S3 key, file with base "Actions" to populate base or defualt permissions boundary, just a list
+    Type:         String
+    Default:      "base_actions.txt"
+
+
+Resources:
+
+# CLOUDWATCH EVENT
+  CloudWatchEventAccessAdvisor:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "Scheduled cloudwatch event for Access Advisor "
+      Name: !Sub "AccessAdvisorAutomation"
+      State: "ENABLED"
+      EventPattern:
+        ScheduleExpression:
+          - "rate(90 day)"
+      Targets:
+        -
+          Arn: !GetAtt "AccessAdvisorAutomationLambda.Arn"
+          Id: "AccessAdvisorAutomationLambda"
+
+# LAMBDA IAM PERMISSIONS
+  PermissionForEventsToInvokeLambda:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !GetAtt "AccessAdvisorAutomationLambda.Arn"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt "CloudWatchEventAccessAdvisor.Arn"
+
+# ACCESS ADVISOR IAM LAMBDA ROLE
+  AccessAdvisorAutomationLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Description: "Access Advisor Lambda IAM Role"
+    DependsOn:
+      - AccessAdvisorAutomation
+    Properties:
+      RoleName: AccessAdvisorAutomationLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - events.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Ref 'AccessAdvisorAutomation'
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Path: '/'
+
+# IAM POLICY - IAM POLICY MANAGEMENT
+  AccessAdvisorAutomation:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: 'Access Advisor Automation Management policy'
+      ManagedPolicyName: !Sub 'AccessAdvisor-Automation-Management'
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AccessAdvisorAutomation
+            Effect: "Allow"
+            Action:
+              - "iam:GetServiceLastAccessedDetailsWithEntities"
+              - "iam:GenerateServiceLastAccessedDetails"
+              - "iam:GetServiceLastAccessedDetails"
+              - "iam:TagRole"
+              - "iam:ListUsers"
+              - "iam:ListRoles"
+              - "iam:ListGroups"
+              - "iam:TagUser"
+              - "iam:GetPolicy"
+              - "iam:GetPolicyVersion"
+              - "iam:CreatePolicy"
+              - "iam:PutUserPermissionsBoundary"
+              - "iam:PutRolePermissionsBoundary"
+              - "iam:CreatePolicyVersion"
+              - "iam:DeletePolicyVersion"
+              - "s3:List*"
+              - "s3:Get*"
+              - "kms:Decrypt"
+            Resource:
+              - "*"
+          - Sid: CloudwatchLogs
+            Effect: "Allow"
+            Action:
+              - "logs:CreateLogGroup"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - "*"
+
+# LAMBDA FUNCTION
+  AccessAdvisorAutomationLambda:
+    Type: 'AWS::Lambda::Function'
+    DependsOn: AccessAdvisorAutomationLambdaRole
+    Properties:
+      Description: !Sub 'A custom Lambda function for Access Advisor automation'
+      FunctionName: !Sub '${AppName}-${Environment}-AccessAdvisor-automation'
+      Handler: accessadvisor_automation.lambda_handler
+      Role: !GetAtt 'AccessAdvisorAutomationLambdaRole.Arn'
+      Runtime: "python3.7"
+      Layers:
+        - !Ref LambdaLayer1
+      Code:
+        S3Bucket: !Ref 'S3Bucket'
+        S3Key: !Ref 'S3Key'
+      Timeout: 900
+      MemorySize: 128
+      Environment:
+        Variables:
+          DoNotListBucket: !Ref DoNotListBucket
+          DoNotListKey:    !Ref DoNotListKey
+          DaysExpire:      !Ref DaysExpire
+          Enforce:         !Ref Enforce
+          BaseActions:     !Ref BaseActions
+      TracingConfig:
+        Mode: "Active"
+
+  LambdaLayer1:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - python3.6
+      Content:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Ref S3LambdaLayerKey
+      Description: "boto3 layer"
+      LayerName: boto3layer
+      LicenseInfo: Apache2.0
+
+
+Outputs:
+
+  AccessAdvisorAutomationLambda:
+    Description: "The Name of the Access Advisor automation Lambda Function"
+    Value:       !Sub 'AccessAdvisorAutomationLambda'
+    Export:
+      Name:      !Sub '${AppName}-${Environment}-Enforce-${Enforce}-AA-automation'
+
+  AccessAdvisorAutomationLambdaArn:
+    Description: "The ARN of the Access Advisor automation Lambda Function"
+    Value:       !GetAtt 'AccessAdvisorAutomationLambda.Arn'
+    Export:
+      Name:      !Sub '${AppName}-${Environment}-Enforce-${Enforce}-AA-automation-arn'
