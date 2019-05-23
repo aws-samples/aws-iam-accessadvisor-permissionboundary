@@ -71,13 +71,13 @@ identify IAM Roles that may have unnecessary privileges.
 
 Limitation: Currently IAM Group resources can not be tagged. Users are tagged instead. 
 ### Archtiecture Diagram
-![create iam policy](aws-iam-accessadvisor-permissionboundary/images/draw.io_Access_Advisor_Automation-diagram.png)
+![create iam policy](images/draw.io_Access_Advisor_Automation-diagram.png)
 
 ### Application Logic
-![program logic](aws-iam-accessadvisor-permissionboundary/images/logic.png)
+![program logic](images/logic.png)
 
 ### Creating and Applying Permissions Boundary
-![create iam policy](aws-iam-accessadvisor-permissionboundary/images/draw.io_Access_Advisor_Automation-policy-create-flow.png) 
+![create iam policy](images/draw.io_Access_Advisor_Automation-policy-create-flow.png) 
 
 ### Use Cases
 
