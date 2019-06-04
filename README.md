@@ -12,9 +12,11 @@ This library is licensed under the Apache 2.0 License.
 
 ### Overview
 
-Access Advisor Automation has been developed to provide two main functions. First is to regularly review data from 
+[WHAT IS ACCESS ADVISOR]
+
+Access Advisor Automation script has been developed to provide two main functions. First is to regularly review data from 
 AWS Access Advisor and provide ability to audit IAM roles, users and groups based on their previous access to services 
-as reported by AWS Access Advisor.  The data is then used by this program to tag IAM entities with, number of services 
+as reported by AWS [Access Advisor](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor-view-data.html).  The data is then used by this program to tag IAM entities with, number of services 
 entities has access to, number of services they actually accessed in a configurable expiration period and percentage of
 actual access that was used compared to granted.  Second function is based on the services entity used within the 
 expiration period, the program generates a permissions boundary and applies it to the user or role entity, effectively 
@@ -25,7 +27,7 @@ users to restricted unnecessary permissions and make defining least privileged a
  
 ### Features
 
-Automating audit of least privileged access across AWS IAM entities (users, roles and groups) and restricting access 
+Automating audit of permissions based on history of access across AWS IAM entities (users, roles and groups) and restricting access 
 to unused services with IAM permissions boundaries. Automatically assigning permissions boundary to limit access to 
 only services accessed within expiration period. If service is not accessed within expiration period it is not 
 included in the permissions boundary effectively removing access to the service.
@@ -39,20 +41,18 @@ Tag a user and/or role with:
     Permissions Granted - Total
     Permissions Unused - Total
 
-Configurable expiration period. If service is not accessed within the expiration period its, not included in permissions
-boundary. Automatically creating and apply permissions boundaries to IAM users and roles based on Access Advisor data.
+Configurable expiration period through Cloudformation template parameter allows permissions to be restricted based on 
+usage history and if permissions are unused they are restricted with permissions boundary reducing blast radius of each 
+AIM entity within AWS account. If service is not accessed within the expiration period 
+its, not included in permissions boundary.
 
-Exception list that can be saved on S3 and accessed by the program during runtime. 
+Configurable exception list that can be saved as a file on S3 and accessed by the program during runtime. Make sure that
+the lambda function role has access to read the S3 object. 
 
-Included Cloudformation template deploys everything required to run this program as a lambda function, as well as 
-time based Cloudwatch Event configured to be kicked off every 90 days.  This threshold can be change in CF template.
-For accounts with large number of IAM entities, lambda function may no have a enough time to finish assessing all entities. You may
-consider deploying this program as a set step functions or a container.  
-
+### What is Access Advisor? 
 Access Advisor shows the service permissions granted to a role and when permissions were used to access services last. 
 You can use this information to revise your policies.
 http://docs.aws.amazon.com/console/iam/access-advisor-intro
-
 
 Note: Recent activity usually appears within 4 hours. Data is stored for a maximum of 365 days, depending when your 
 region began supporting this feature.
@@ -60,6 +60,27 @@ http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
 
 This program is created to help AWS Customers achieve least privileged access. Using Access Advisor APIs it help to
 identify IAM Roles that may have unnecessary privileges.  
+
+### Installation
+
+Included Cloudformation template deploys everything required to run this program as a lambda function, as well as 
+time based Cloudwatch Event configured to be kicked off every 90 days.  This threshold can be change in CF template.
+For accounts with large number of IAM entities, lambda function may no have a enough time to finish assessing all entities. You may
+consider deploying this program as a set step functions or a container. 
+
+**Prerequisite: Latest boto3 SDK**
+
+### Building Lambda Layer
+*You will need to build a lambda layer with boto3 SDK.* 
+    
+        pip install boto3 --target python/.   
+        # install botocore
+        pip install botocore --target python/.
+        # zip to four layer
+        zip boto3layer.zip -r python/
+        aws lambda publish-layer-version --layer-name boto3-layer --zip-file fileb://boto3layer.zip
+        
+ 
 
 #### Added 03/2019
 
@@ -135,7 +156,11 @@ Required IAM policy for lambda role
 ### Tagging
 The program will tag each IAM user and Role with tags, summary of permissions granted and services accessed.
 
-#### Exception, Do_not_list
+### Exception
+
+Exceptions are supported vi do_no_list.txt file. The file should be stored in s3, where lambda function will have access
+to retrieve the file.  The file should contain list of users and or roles that should be excluded. The list is s3 object
+is configurable during Cloudformation deployment.
 
 1. Exclude from tagging
 2. Exclude from permissions boundary & policy creation
@@ -151,8 +176,8 @@ You may use 'do_not_tag' list and safe it to S3.
     role2
 
 ### Base Permissions Boundary
-Set list of Actions to be configured in policies for IAM entities that have not accessed services.  This will be applied as
-permissions boundary to these IAM entities. 
+Set list of Actions to be configured in policies for IAM entities that have not accessed services.  This will be applied
+as permissions boundary to these IAM entities. 
 
 Sample file is base_actions.txt
     
@@ -212,23 +237,8 @@ You can of course change in the template.
 * Set lambda function time to maximum of 15min. 
 
 
-**Prerequisite: Latest boto3 SDK**
 
-### Building Lambda Layer
-*You will need to build a lambda layer with boto3 SDK.* 
-    
-        pip install boto3 --target python/.   
-        # install botocore
-        pip install botocore --target python/.
-        # zip to four layer
-        zip boto3layer.zip -r python/
-        aws lambda publish-layer-version --layer-name boto3-layer --zip-file fileb://boto3layer.zip
-        
 
-    
- *If user have not used any of granted permissions, there is nothing add to the Permissions Boundary, "Action" 
- can not be empty.  We have 2 options, 1. remove all policies from IAM entity 2. Add a default Permissions Boundary.
- the script will implement default permission boundary*
  
 
 
