@@ -80,14 +80,6 @@ consider deploying this program as a set step functions or a container.
         
  
 
-#### Added 03/2019
-
-1. Enforce yes/no switch, set to no if you do not want to create permissions boundaries.
-2. do_not_list now applies to policy creation, policies will not be created for entities in do_not_list
-3. Base Permissions Boundary, saved in file in the same S3 bucket. base_actions.txt
-4. Enhanced calculation of the permissions coverage
-5. Updated CF template to provided additional variables
-
 Limitation: Currently IAM Group resources can not be tagged. Users are tagged instead. 
 ### Archtiecture Diagram
 ![create iam policy](images/draw.io_Access_Advisor_Automation-diagram.png)
