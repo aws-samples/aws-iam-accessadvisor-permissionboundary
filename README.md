@@ -84,13 +84,6 @@ Limitation: Currently IAM Group resources can not be tagged. Users are tagged in
 ### Archtiecture Diagram
 ![create iam policy](images/draw.io_Access_Advisor_Automation-diagram.png)
 
-### Application Logic
-![program logic](images/logic.png)
-
-### Creating and Applying Permissions Boundary
-![create iam policy](images/draw.io_Access_Advisor_Automation-policy-create-flow.png) 
-
-### Use Cases
 
 ### IAM Policy for Lambda
 Required IAM policy for lambda role
@@ -148,7 +141,7 @@ The program will tag each IAM user and Role with tags, summary of permissions gr
 
 ### Exception
 
-Exceptions are supported vi do_no_list.txt file. The file should be stored in s3, where lambda function will have access
+Exceptions are supported via do_no_list.txt file. The file should be stored in s3, where lambda function will have access
 to retrieve the file.  The file should contain list of users and or roles that should be excluded. The list is s3 object
 is configurable during Cloudformation deployment.
 
