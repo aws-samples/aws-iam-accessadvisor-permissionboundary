@@ -10,9 +10,19 @@ This library is licensed under the Apache 2.0 License.
 **Classify and Enforce Least Privileged Access with AWS Access Advisor, IAM Permissions Boundary & boto3**
 
 
-### Overview
+## Overview
 
-[WHAT IS ACCESS ADVISOR]
+### What is Access Advisor? 
+Access Advisor shows the service permissions granted to a role and when permissions were used to access services last. 
+You can use this information to revise your policies.
+http://docs.aws.amazon.com/console/iam/access-advisor-intro
+
+Note: Recent activity usually appears within 4 hours. Data is stored for a maximum of 365 days, depending when your 
+region began supporting this feature.
+http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
+
+This program is created to help AWS Customers achieve least privileged access. Using Access Advisor APIs it help to
+identify IAM Roles that may have unnecessary privileges.  
 
 Access Advisor Automation script has been developed to provide two main functions. First is to regularly review data from 
 AWS Access Advisor and provide ability to audit IAM roles, users and groups based on their previous access to services 
@@ -48,18 +58,6 @@ its, not included in permissions boundary.
 
 Configurable exception list that can be saved as a file on S3 and accessed by the program during runtime. Make sure that
 the lambda function role has access to read the S3 object. 
-
-### What is Access Advisor? 
-Access Advisor shows the service permissions granted to a role and when permissions were used to access services last. 
-You can use this information to revise your policies.
-http://docs.aws.amazon.com/console/iam/access-advisor-intro
-
-Note: Recent activity usually appears within 4 hours. Data is stored for a maximum of 365 days, depending when your 
-region began supporting this feature.
-http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
-
-This program is created to help AWS Customers achieve least privileged access. Using Access Advisor APIs it help to
-identify IAM Roles that may have unnecessary privileges.  
 
 ### Installation
 
