@@ -40,7 +40,7 @@ The script provide two main functions: First it regularly review data from
 AWS Access Advisor and provide ability to audit IAM roles, users and groups based on their previous access to services 
 as reported by AWS [Access Advisor](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor-view-data.html).  
 The data is then used by the script to tag IAM entities with:
- * number of services entities has access to,
+ * number of services entities have access to,
  * number of services actually accessed in a configurable expiration period, and
  * and percentage of actual access that was used compared to granted.  
  
