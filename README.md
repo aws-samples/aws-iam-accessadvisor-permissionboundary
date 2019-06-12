@@ -7,45 +7,44 @@ Audit IAM roles and users using Access Advisor data using Python/boto3 SDK and a
 This library is licensed under the Apache 2.0 License. 
 
 ## Description
-**Classify and Enforce Least Privileged Access with AWS Access Advisor, IAM Permissions Boundary & boto3**
-
-
-## Overview
-
-### What is Access Advisor? 
-Access Advisor shows the service permissions granted to a role and when permissions were used to access services last. 
-You can use this information to revise your policies.
-http://docs.aws.amazon.com/console/iam/access-advisor-intro
-
-Note: Recent activity usually appears within 4 hours. Data is stored for a maximum of 365 days, depending when your 
-region began supporting this feature.
-http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
-
-This program is created to help AWS Customers achieve least privileged access. Using Access Advisor APIs it help to
-identify IAM Roles that may have unnecessary privileges.  
-
-Access Advisor Automation script has been developed to provide two main functions. First is to regularly review data from 
-AWS Access Advisor and provide ability to audit IAM roles, users and groups based on their previous access to services 
-as reported by AWS [Access Advisor](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor-view-data.html).  The data is then used by this program to tag IAM entities with, number of services 
-entities has access to, number of services they actually accessed in a configurable expiration period and percentage of
-actual access that was used compared to granted.  Second function is based on the services entity used within the 
-expiration period, the program generates a permissions boundary and applies it to the user or role entity, effectively 
-limiting access to only services accessed during the defined period.  The supplied Cloudformation template deploys 
-the program into a lambda function as well as Cloudwatch Event that is configured to kick off Lambda function based 
-on defined time period.  The Lambda function can be configured to run regularly to review and adjust access given to 
-users to restricted unnecessary permissions and make defining least privileged access easier and more automated. 
- 
-### Features
-
+**Classify and Enforce Least Privileged Access with AWS Access Advisor, IAM Permissions Boundary & boto3.**
 Automating audit of permissions based on history of access across AWS IAM entities (users, roles and groups) and restricting access 
 to unused services with IAM permissions boundaries. Automatically assigning permissions boundary to limit access to 
 only services accessed within expiration period. If service is not accessed within expiration period it is not 
 included in the permissions boundary effectively removing access to the service.
 
+
+## Overview
+
+### What is Access Advisor? 
+Access Advisor shows the service permissions granted to a role and when permissions were used to access a service last. 
+You can use this information to revise your policies.
+http://docs.aws.amazon.com/console/iam/access-advisor-intro
+
+Note: Recent activity usually appears within 4 hours. Data is stored for a maximum of 365 days, depending on when AWS 
+region began supporting this feature.
+http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
+
+### Features
+Access Advisor Permission Boundary automation script has benn created to help AWS customers achieve least privileged access as well
+as remove access form users and roles that have not been used within configurable expiration period. 
+The script provide two main functions: First it regularly review data from 
+AWS Access Advisor and provide ability to audit IAM roles, users and groups based on their previous access to services 
+as reported by AWS [Access Advisor](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_access-advisor-view-data.html).  
+The data is then used by the script to tag IAM entities with:
+ * number of services entities has access to,
+ * number of services actually accessed in a configurable expiration period, and
+ * and percentage of actual access that was used compared to granted.  
+ 
+Second feature is based on the services entity used within the expiration period, the script generates a permissions boundary and applies it to the user or role entity, effectively limiting access to only services accessed during the defined period.  The supplied Cloudformation template deploys 
+the program into a lambda function as well as Cloudwatch Event that is configured to kick off Lambda function based 
+on defined time period.  The Lambda function can be configured to run regularly to review and adjust access given to 
+users to restricted unnecessary permissions and make defining least privileged access easier and more automated. 
+
 Tagging IAM entities with access summary data. Total permissions granted, permissions used and % of permissions used.
 Tagging with services used be the IAM entity. 
 
-Tag a user and/or role with:
+#### Tag a user and/or role with:
 
     Permissions Coverage - Percentage
     Permissions Granted - Total
@@ -63,8 +62,8 @@ the lambda function role has access to read the S3 object.
 
 Included Cloudformation template deploys everything required to run this program as a lambda function, as well as 
 time based Cloudwatch Event configured to be kicked off every 90 days.  This threshold can be change in CF template.
-For accounts with large number of IAM entities, lambda function may no have a enough time to finish assessing all entities. You may
-consider deploying this program as a set step functions or a container. 
+* For accounts with large number of IAM entities, lambda function may no have a enough time to finish assessing all entities. You may
+consider deploying this program as a set of step functions or a container. 
 
 **Prerequisite: Latest boto3 SDK**
 
@@ -135,9 +134,6 @@ Required IAM policy for lambda role
     ]
 }
 
-
-### Tagging
-The program will tag each IAM user and Role with tags, summary of permissions granted and services accessed.
 
 ### Exception
 
