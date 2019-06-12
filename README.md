@@ -25,6 +25,14 @@ Note: Recent activity usually appears within 4 hours. Data is stored for a maxim
 region began supporting this feature.
 http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
 
+### What is Permission Boundary
+AWS supports [permissions boundaries](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html) 
+for IAM entities (users or roles). A permissions boundary is an advanced feature 
+for using a managed policy to set the maximum permissions that an identity-based policy can grant to an IAM entity. An 
+entity's permissions boundary allows it to perform only the actions that are allowed by both its identity-based policies
+and its permissions boundaries.
+
+
 ### Features
 Access Advisor Permission Boundary automation script has benn created to help AWS customers achieve least privileged access as well
 as remove access form users and roles that have not been used within configurable expiration period. 
