@@ -16,7 +16,7 @@ import os
 
 
 '''
-Classifying and Enforce Least Privileged Access with Access Advisor, Permissions Boundary & boto3
+Classifying and Enforce Least Privileged Access with access advisor, Permissions Boundary & boto3
 
 Automating audit of least privileged access across AWS IAM entities (users, roles and groups) and applying 
 Permissions Boundary to limit access to only services accessed within expiration period. If service is not accessed 
@@ -32,10 +32,10 @@ Permissions Granted - Total
 Permissions Unused - Total
 
 Configurable expiration period. If service is not accessed within the expiration period its, not included in permissions
-boundary. Automatically creating and apply permissions boundaries to IAM users and roles based on Access Advisor data.
+boundary. Automatically creating and apply permissions boundaries to IAM users and roles based on access advisor data.
 
 
-Access Advisor shows the service permissions granted to a role and when permissions were used to access services last. 
+access advisor shows the service permissions granted to a role and when permissions were used to access services last. 
 You can use this information to revise your policies.
 http://docs.aws.amazon.com/console/iam/access-advisor-intro
 
@@ -46,7 +46,7 @@ Note: Recent activity usually appears within 4 hours. Data is stored for a maxim
 region began supporting this feature.
 http://docs.aws.amazon.com/console/iam/access-advisor-regional-tracking-period
 
-This program is created to help AWS Customers achieve least privileged access. Using Access Advisor APIs it help to
+This program is created to help AWS Customers achieve least privileged access. Using access advisor APIs it help to
 identify IAM Roles that may have unnecessary privileges.  
 
 Limitation: Currently IAM Group resources can not be tagged. Users are tagged instead. 
@@ -417,7 +417,7 @@ def tag_user(user, key, value):
 
 
 ###########################################
-# Review of IAM users with Access Advisor
+# Review of IAM users with access advisor
 ###########################################
 def iam_users():
     do_not_list = get_list_s3(bucket, key)
@@ -430,11 +430,11 @@ def iam_users():
         unused_count = 0
         total_count = 0
 
-        # Make APIs calls to get Access Advisor data for a user
+        # Make APIs calls to get access advisor data for a user
         jobid = (generateServiceLastAccessedDetails(user))
         details = (getServiceLastAccessedDetails(jobid))
 
-        # Since we get user arn we can use syntax below to just get the name
+        # Since we get user ARN we can use syntax below to just get the name
         username = user.split("/")[-1]
 
         # Let's loop trough all the services
@@ -467,7 +467,7 @@ def iam_users():
                 else:
 
                     # Accessed within the expriation period we will tag user
-                    # We'll make a call to another Access Advisor API to get details for each services accessed
+                    # We'll make a call to another access advisor API to get details for each services accessed
                     details_w_entity = (getServiceLastAccessedDetailswithEntities(jobid, service['ServiceNamespace']))
                     entityinfo = (details_w_entity['EntityDetailsList'])
                     for e in entityinfo:
@@ -520,9 +520,9 @@ def iam_users():
                 if services:  # checking if services (action) is populated to create a permissions boundary
 
                     # Creating and adding permission boundary
-                    # Call module to create an IAM Policy with services, returns IAM policy arn
-                    policy_arn = create_iam_policy(username, services, get_aws_account_id())
-                    # Using IAM policy arn attach the permissions boundary to the user
+                    # Call module to create an IAM policy with services, returns IAM policy arn
+                    policy_ARN = create_iam_policy(username, services, get_aws_account_id())
+                    # Using IAM policy ARN attach the permissions boundary to the user
                     attach_user_pb(username, policy_arn)
 
                 else:
@@ -530,7 +530,7 @@ def iam_users():
                     services = get_list_s3(bucket, base_actions)  # if changed, update the policy creation module
                     print({'msg': 'get_s3_object', 'object': services, 'user': username})
                     # Creating and adding permission boundary
-                    policy_arn = create_iam_policy(username, services, get_aws_account_id())
+                    policy_ARN = create_iam_policy(username, services, get_aws_account_id())
                     attach_user_pb(username, policy_arn)
 
         #  Calculating the total services with permissions for a given user
@@ -552,7 +552,7 @@ def iam_users():
 
 
 ###########################################
-# Review of IAM roles with Access Advisor
+# Review of IAM roles with access advisor
 ###########################################
 def iam_roles():
     do_not_list = get_list_s3(bucket, key)
@@ -565,11 +565,11 @@ def iam_roles():
         unused_count = 0
         total_count = 0
 
-        # Make APIs calls to get Access Advisor data for a role
+        # Make APIs calls to get access advisor data for a role
         jobid = (generateServiceLastAccessedDetails(role))
         details = (getServiceLastAccessedDetails(jobid))
 
-        # Since we get role arn we can use syntax below to just get the name
+        # Since we get role ARN we can use syntax below to just get the name
         rolename = role.split("/")[-1]
 
         # Let's loop trough all the services
@@ -602,7 +602,7 @@ def iam_roles():
                 else:
 
                     # Accessed within the expriation period we will tag role
-                    # We'll make a call to another Access Advisor API to get details for each services accessed
+                    # We'll make a call to another access advisor API to get details for each services accessed
                     details_w_entity = (getServiceLastAccessedDetailswithEntities(jobid, service['ServiceNamespace']))
                     entityinfo = (details_w_entity['EntityDetailsList'])
                     for e in entityinfo:
@@ -653,9 +653,9 @@ def iam_roles():
                 if services:  # checking if services (action) is populated to create a permissions boundary
 
                     # Creating and adding permission boundary
-                    # Call module to create an IAM Policy with services, returns IAM policy arn
-                    policy_arn = create_iam_policy(rolename, services, get_aws_account_id())
-                    # Using IAM policy arn attach the permissions boundary to the role
+                    # Call module to create an IAM policy with services, returns IAM policy arn
+                    policy_ARN = create_iam_policy(rolename, services, get_aws_account_id())
+                    # Using IAM policy ARN attach the permissions boundary to the role
                     attach_role_pb(rolename, policy_arn)
 
                 else:
@@ -663,7 +663,7 @@ def iam_roles():
                     services = get_list_s3(bucket, base_actions)  # if changed, update the policy creation module
                     print({'msg': 'get_s3_object', 'object': services, 'role': rolename})
                     # Creating and adding permission boundary
-                    policy_arn = create_iam_policy(rolename, services, get_aws_account_id())
+                    policy_ARN = create_iam_policy(rolename, services, get_aws_account_id())
                     attach_role_pb(rolename, policy_arn)
 
         #  Calculating the total services with permissions for a given role
@@ -684,7 +684,7 @@ def iam_roles():
         print(logger_summary('summary', 'role', rolename, str(total_count), str(unused_count), str(calc_coverage)))
 
 ###########################################
-# Review of IAM Groups with Access Advisor
+# Review of IAM Groups with access advisor
 ###########################################
 def iam_groups():
     do_not_list = get_list_s3(bucket, key)
@@ -706,7 +706,7 @@ def iam_groups():
                     user = e['EntityInfo']['Name']
                     # This will tag user with each service it had accessed.  This does not work well for admin users.
                     # Admin users access a lot of services and will easily hit 50 tag limit on a user entity.
-                    # Rather then tagging we will just add this to the log
+                    # Rather than tagging we will just add this to the log
 
                     if user in do_not_list:
                         print(logger_detail('detail', 'group', user, service['ServiceNamespace'],
@@ -738,8 +738,8 @@ def iam_groups():
 
 
 ##########################################################################
-# Services list will be passed from user / role Access Advisor review list
-# Services will be used as Action in the IAM Policy to define permissions boundary
+# Services list will be passed from user / role access advisor review list
+# Services will be used as Action in the IAM policy to define permissions boundary
 def create_iam_policy(iam_entity, servicelist, accountid):
 
     servicelist2 = []  # We'll use this variable to store modified list of services to use in IAM policy json
@@ -747,7 +747,7 @@ def create_iam_policy(iam_entity, servicelist, accountid):
     iam_policy_name = 'AccessAdvisor-PB-' + iam_entity
 
     # Let's define Permissions Boundary policy Arn
-    policyarn = 'arn:aws:iam::' + accountid + ':policy/AccessAdvisor-PB-' + iam_entity
+    policyARN = 'arn:aws:iam::' + accountid + ':policy/AccessAdvisor-PB-' + iam_entity
 
     # Check if this is a base permissions boundary for user/role
     # That didn't access any services during expiration period
@@ -762,7 +762,7 @@ def create_iam_policy(iam_entity, servicelist, accountid):
             servicelist2.append(s)
         servicelist2.sort()
 
-    # Now we're ready to check on existing IAM Policy
+    # Now we're ready to check on existing IAM policy
     client = boto3.client('iam')
     print('CHECK IF POLICY EXISTS')
     try:
@@ -770,7 +770,7 @@ def create_iam_policy(iam_entity, servicelist, accountid):
         # AWS versions IAM policies and we can store maximum of 5 policy versions
         response = client.get_policy(PolicyArn = policyarn)
         print('Policy: ', response['Policy']['Arn'])
-        arn = (response['Policy']['Arn'])
+        ARN = (response['Policy']['Arn'])
         # Below we're getting version of the policy
         policyver = (response['Policy']['DefaultVersionId'])
         # Here we're making another API call to get the current version of the policy
@@ -784,7 +784,7 @@ def create_iam_policy(iam_entity, servicelist, accountid):
         if isinstance(servicelist2, list):
             servicelist2.sort()
 
-        # Now we'll validate that the "Action" in the policy matches what Access Advisor identified as used Actions
+        # Now we'll validate that the "Action" in the policy matches what access advisor identified as used Actions
         # If this policy attached does not match we will update the policy
         if version_action == servicelist2:
             print({"msgtype": 'policy validation',
@@ -799,8 +799,8 @@ def create_iam_policy(iam_entity, servicelist, accountid):
                    "entityname": iam_policy_name,
                    'msg': 'IAM services changed, need new policy'})
 
-            # Here we'll build policy json, passing servicelist2 list of actions from Access Advisor and restrict
-            # with "Effect": "Deny: No Boundary Policy Edit and No Boundary Role & User Delete
+            # Here we'll build policy json, passing servicelist2 list of actions from access advisor and restrict
+            # with "Effect": "Deny: No Boundary policy Edit and No Boundary Role & User Delete
             policy = {'Version': '2012-10-17'}
             policy['Statement'] = [{
                 "Sid": "",

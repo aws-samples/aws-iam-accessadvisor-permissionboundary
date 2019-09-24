@@ -91,6 +91,19 @@ Limitation: Currently IAM Group resources can not be tagged. Users are tagged in
 ### Archtiecture Diagram
 ![create iam policy](images/draw.io_Access_Advisor_Automation-diagram.png)
 
+Deployment Process:
+ - 1a. Place installation files into an S3 bucket where CloudFormation has access to these files. This is an optional step as you can use the bucket included in CloudFormation. 
+ - 1b. Place configuration files into the S3 bucket.
+ - 2a & 2b Build required infrastructure componets to run the solution. 
+
+Execution Process:
+- A.	Time-based CloudWatch Event Rule triggers Lambda function.
+- B.	Lambda function retrieves configuration files.
+- C.	Retrieve list of IAM roles.
+- D.	Obtain access advisor report for each IAM role.
+- E.	Using data in the access advisor report, create IAM policy, which will be used as a permissions boundary.
+- F.	Apply permissions boundary and tag IAM role
+
 
 ### IAM Policy for Lambda
 Required IAM policy for lambda role
