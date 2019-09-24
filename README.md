@@ -69,7 +69,7 @@ the lambda function role has access to read the S3 object.
 ### Installation
 
 Included Cloudformation template deploys everything required to run this program as a lambda function, as well as 
-time based Cloudwatch Event configured to be kicked off every 90 days.  This threshold can be change in CF template.
+time based Cloudwatch Event configured to be kicked off every 90 days.  This threshold can be changed in CF template.
 * For accounts with large number of IAM entities, lambda function may no have a enough time to finish assessing all entities. You may
 consider deploying this program as a set of step functions or a container. 
 
